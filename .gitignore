@@ -1,0 +1,7 @@
+.catalystrc
+**/.project
+**/.classpath
+**/.idea
+**/*.iml
+**/.output
+**/lib

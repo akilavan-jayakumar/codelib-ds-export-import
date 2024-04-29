@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "targets": [
+      "ds-export-import",
+      "ds-export"
+    ],
+    "ignore": [
+      ".output"
+    ],
+    "source": "functions"
+  }
+}
