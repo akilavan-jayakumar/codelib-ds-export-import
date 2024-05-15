@@ -2,7 +2,8 @@
   "functions": {
     "targets": [
       "ds-export-import",
-      "ds-export"
+      "ds-export",
+      "datastore-import"
     ],
     "ignore": [
       ".output"

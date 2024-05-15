@@ -1,9 +1,19 @@
 package pojos;
 
-public class FileMeta {
+import java.util.UUID;
+
+public class ImportFileMeta {
+    private final String id;
     private String name;
-    private String table;
     private String file_id;
+
+    public ImportFileMeta() {
+        this.id = UUID.randomUUID().toString();
+    }
+
+    public String getId() {
+        return id;
+    }
 
     public String getFile_id() {
         return file_id;
@@ -20,13 +30,4 @@ public class FileMeta {
     public void setName(String name) {
         this.name = name;
     }
-
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
 }

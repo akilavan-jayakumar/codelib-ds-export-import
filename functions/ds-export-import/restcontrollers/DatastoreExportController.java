@@ -9,13 +9,18 @@ import enums.CommonResponseMessage;
 import enums.JobStatus;
 import exceptions.HttpException;
 import org.springframework.http.HttpStatus;
-import pojos.FileMeta;
-import pojos.Job;
+import pojos.ExportFileMeta;
+import pojos.ExportJob;
 import utils.DatastoreExportUtil;
+import utils.ExportFileMetaUtil;
+import utils.ExportJobUtil;
 import web.ResponseWrapper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,29 +61,48 @@ public class DatastoreExportController {
         ZCBulkResult zcBulkResult = objectMapper.readValue(requestBodyString, new TypeReference<ZCBulkResult>() {
         });
 
-        List<Job> jobs = DatastoreExportUtil.getAllJobs();
-        Job job = jobs.stream().filter(obj -> obj.getId().equals(zcBulkResult.getJobId().toString())).findFirst().orElse(null);
+        ExportJob currentExportJob = ExportJobUtil.getJobByJobId(zcBulkResult.getJobId().toString());
 
-        if (job == null) {
+        if (currentExportJob == null) {
             throw new HttpException(CommonResponse.EXPORT_JOB_NOT_FOUND);
         }
 
         if (zcBulkResult.getStatus().equals(STATUS.FAILED)) {
-            job.setStatus(JobStatus.FAILURE.value);
-            DatastoreExportUtil.updateJobs(jobs);
+            currentExportJob.setStatus(JobStatus.FAILURE.value);
+            ExportJobUtil.updateJob(currentExportJob);
         } else {
-            job.setStatus(JobStatus.SUCCESS.value);
-            FileMeta fileMeta = DatastoreExportUtil.cloneJobAssetToFilestore(job);
-            DatastoreExportUtil.createFileMeta(fileMeta);
+            currentExportJob.setStatus(JobStatus.SUCCESS.value);
+            ExportJobUtil.updateJob(currentExportJob);
 
-            List<Job> pendingJobs = jobs.stream().filter(obj -> obj.getStatus().equals(JobStatus.PENDING.value)).toList();
+            List<File> exportJobReports = ExportJobUtil.getExportJobReports(currentExportJob);
+            List<ExportFileMeta> exportFileMetas = new ArrayList<>();
 
-            if (!pendingJobs.isEmpty()) {
-                Job pendingJob = pendingJobs.get(0);
-                DatastoreExportUtil.createTableExport(pendingJob, getDomainFromRequest(httpServletRequest));
-                DatastoreExportUtil.updateJobs(jobs);
+            for (File exportJobReport : exportJobReports) {
+                ExportFileMeta exportFileMeta = new ExportFileMeta();
+                exportFileMeta.setTable(currentExportJob.getTable());
+                exportFileMeta.setName(exportJobReport.getName());
+                exportFileMeta.setFile_id(ExportFileMetaUtil.uploadFile(exportJobReport));
+                exportFileMetas.add(exportFileMeta);
+            }
+
+
+            ExportFileMetaUtil.createExportFileMetas(exportFileMetas);
+
+            if (zcBulkResult.getResults().getDetails().get(0).getMoreRecords()) {
+                ExportJob exportJob = new ExportJob();
+                exportJob.setTable(currentExportJob.getTable());
+                exportJob.setPage(currentExportJob.getPage() + 1);
+                exportJob.setStatus(JobStatus.PENDING.value);
+                ExportJobUtil.createJob(exportJob);
+            }
+
+            List<ExportJob> pendingExportJobs = ExportJobUtil.getAllJobs(Collections.singletonList(JobStatus.PENDING));
+
+            if (!pendingExportJobs.isEmpty()) {
+                ExportJob pendingExportJob = pendingExportJobs.get(0);
+                ExportJobUtil.executeJob(pendingExportJob, getDomainFromRequest(httpServletRequest));
+
             } else {
-                DatastoreExportUtil.updateJobs(jobs);
                 DatastoreExportUtil.endExport();
             }
         }

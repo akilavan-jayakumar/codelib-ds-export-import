@@ -2,6 +2,7 @@ package pojos;
 
 public class Job {
 	private String id;
+	private String jobId;
     private Integer page;
     private String table;
     private Integer status;
@@ -12,6 +13,14 @@ public class Job {
 
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	public String getJobId() {
+		return jobId;
+	}
+
+	public void setJobId(String jobId) {
+		this.jobId = jobId;
 	}
 
 	public Integer getPage() {

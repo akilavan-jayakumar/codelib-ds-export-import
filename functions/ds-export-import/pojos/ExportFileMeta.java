@@ -1,16 +1,18 @@
 package pojos;
 
-public class FileMeta {
-    private String id;
+
+public class ExportFileMeta {
     private String name;
     private String table;
+    private String file_id;
 
-    public String getId() {
-        return id;
+
+    public String getFile_id() {
+        return file_id;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setFile_id(String file_id) {
+        this.file_id = file_id;
     }
 
     public String getName() {

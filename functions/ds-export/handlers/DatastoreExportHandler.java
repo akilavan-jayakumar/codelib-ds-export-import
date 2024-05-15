@@ -30,6 +30,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -44,7 +45,8 @@ public class DatastoreExportHandler {
 
             if (!zcRowPagedResponse.getRows().isEmpty()) {
                 Job job = new Job();
-                job.setId("");
+                job.setId(UUID.randomUUID().toString());
+                job.setJobId("");
                 job.setPage(1);
                 job.setTable(table.getName());
                 if (jobs.isEmpty()) {
@@ -70,13 +72,12 @@ public class DatastoreExportHandler {
             ZCBulkReadServices zcBulkReadServices = ZCDataStoreBulk.getInstance().getBulkReadInstance();
             ZCBulkResult zcBulkResult = zcBulkReadServices.createBulkReadJob(job.getTable(), zcBulkQueryDetails, zcBulkCallbackDetails);
 
-            job.setId(zcBulkResult.getJobId().toString());
+            job.setJobId(zcBulkResult.getJobId().toString());
 
             ObjectMapper objectMapper = new ObjectMapper();
             String jobsJsonString = objectMapper.writeValueAsString(jobs);
 
             ZCSegment zcSegment = ZCCache.getInstance().getSegment(CatalystCacheSegments.DS_IMPORT_EXPORT.NAME);
-            zcSegment.putCacheValue(CatalystCacheSegments.DS_IMPORT_EXPORT.Keys.DS_EXPORT, String.valueOf(true));
             zcSegment.putCacheValue(CatalystCacheSegments.DS_IMPORT_EXPORT.Keys.DS_EXPORT_JOBS, jobsJsonString);
             zcSegment.putCacheValue(CatalystCacheSegments.DS_IMPORT_EXPORT.Keys.DS_EXPORT_FILES, objectMapper.writeValueAsString(Collections.emptyList()));
         }
@@ -122,10 +123,10 @@ public class DatastoreExportHandler {
             tables.add(table);
         }
 
-        ZCFolder zcFolder = ZCFile.getInstance().getFolder(CatalystFilestoreFolders.DS_IMPORT_EXPORT);
+        ZCFolder zcFolder = ZCFile.getInstance().getFolder(CatalystFilestoreFolders.DATASTORE_EXPORT_IMPORT);
 
         for (FileMeta fileMeta : fileMetas) {
-            Long fileId = Long.parseLong(fileMeta.getId());
+            Long fileId = Long.parseLong(fileMeta.getFile_id());
             try (InputStream inputStream = zcFolder.downloadFile(fileId)) {
                 File file = new File(zipDir + File.separator + fileMeta.getName());
                 try (OutputStream outputStream = new FileOutputStream(file)) {
@@ -159,7 +160,6 @@ public class DatastoreExportHandler {
         zipOutputStream.close();
 
         zcFolder.uploadFile(zipFile);
-        zcSegment.deleteCacheValue(CatalystCacheSegments.DS_IMPORT_EXPORT.Keys.DS_EXPORT);
         zcSegment.deleteCacheValue(CatalystCacheSegments.DS_IMPORT_EXPORT.Keys.DS_EXPORT_JOBS);
         zcSegment.deleteCacheValue(CatalystCacheSegments.DS_IMPORT_EXPORT.Keys.DS_EXPORT_FILES);
 

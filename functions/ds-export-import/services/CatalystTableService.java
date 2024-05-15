@@ -6,10 +6,11 @@ import com.zc.component.object.bulk.ZCBulkReadServices;
 import com.zc.component.object.bulk.ZCDataStoreBulk;
 import com.zc.component.object.bulk.result.ZCBulkResult;
 
-import java.io.InputStream;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 public class CatalystTableService {
+    private static final Logger LOGGER = Logger.getLogger(CatalystTableService.class.getName());
     private final String table;
 
 
@@ -17,7 +18,8 @@ public class CatalystTableService {
         this.table = table;
     }
 
-    public ZCBulkResult createBulkExport(int page, String callbackUrl, HashMap<String, String> headers) throws Exception {
+
+    public String createBulkExport(int page, String callbackUrl, HashMap<String, String> headers) throws Exception {
         ZCBulkCallbackDetails zcBulkCallbackDetails = ZCBulkCallbackDetails.getInstance();
         zcBulkCallbackDetails.setUrl(callbackUrl);
         zcBulkCallbackDetails.setHeadersMap(headers);
@@ -28,10 +30,8 @@ public class CatalystTableService {
 
         ZCBulkReadServices zcBulkReadServices = ZCDataStoreBulk.getInstance().getBulkReadInstance();
 
-        return zcBulkReadServices.createBulkReadJob(table, zcBulkQueryDetails, zcBulkCallbackDetails);
+        return zcBulkReadServices.createBulkReadJob(table, zcBulkQueryDetails, zcBulkCallbackDetails).getJobId().toString();
     }
 
-    public InputStream downloadBulkExport(String jobId) throws Exception {
-        return ZCDataStoreBulk.getInstance().getBulkReadInstance().downloadBulkReadJobReport(Long.parseLong(jobId));
-    }
+
 }

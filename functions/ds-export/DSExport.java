@@ -15,7 +15,7 @@ public class DSExport implements ZCFunction {
     public void runner(Context context, BasicIO basicIO) throws Exception {
         try {
             ZCProject.initProject();
-            String action = basicIO.getParameter("action").toString();
+            String action = String.valueOf(basicIO.getParameter("action"));
 
             if (action == null) {
                 throw new Exception("action cannot be empty");
