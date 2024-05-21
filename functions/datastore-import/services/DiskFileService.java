@@ -1,8 +1,6 @@
 package services;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,36 +33,43 @@ public class DiskFileService {
         return filePath.toFile();
     }
 
+    public static File writeFile(String folder, String fileName, String content) throws Exception {
+        File file = createFile(folder, fileName);
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
+            bufferedWriter.write(content);
+        }
+        return file;
+    }
+
+    public static void writeFile(File file, String content) throws Exception {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
+            bufferedWriter.write(content);
+        }
+    }
 
     public static String readFileContent(File file) throws Exception {
         return new String(Files.readAllBytes(file.toPath()));
     }
 
-    public static List<File> unzip(File zipFile, String folder, Boolean deleteSource) throws Exception {
+    public static List<File> unzip(File zipFile, String folder, boolean deleteZipAfterUnzip) throws Exception {
         List<File> unzippedFiles = new ArrayList<>();
 
         try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFile))) {
             ZipEntry zipEntry;
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                File outputFile = createFile(folder, zipEntry.getName());
-                try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
-                    int bytesRead;
-                    byte[] buffer = new byte[8 * 1024];
-                    while ((bytesRead = zipInputStream.read(buffer)) > 0) {
-                        fileOutputStream.write(buffer, 0, bytesRead);
-                    }
+                File out = createFile(folder, zipEntry.getName());
+                try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(out))) {
+                    zipInputStream.transferTo(outputStream);
                 }
-                unzippedFiles.add(outputFile);
+                unzippedFiles.add(out);
             }
         }
 
-        if (deleteSource) {
+        if (deleteZipAfterUnzip) {
             Files.delete(zipFile.toPath());
         }
         return unzippedFiles;
     }
 
-    public static List<File> unzip(File zipFile, String folder) throws Exception {
-        return unzip(zipFile, folder, true);
-    }
+
 }

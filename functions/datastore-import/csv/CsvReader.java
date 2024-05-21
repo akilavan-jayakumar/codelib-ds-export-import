@@ -1,4 +1,4 @@
-package processors;
+package csv;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,17 +8,26 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class CsvProcessor {
+public class CsvReader {
 
     private static final String COMMA_DELIMITER = ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
     private final File file;
 
-    public CsvProcessor(File file) {
+    public CsvReader(File file) {
         this.file = file;
     }
 
     private String preProcessCsvRecord(String record) {
-        return record.substring(1, record.length() - 1);
+
+        if (record.startsWith("\"")) {
+            record = record.substring(1);
+        }
+
+        if (record.endsWith("\"")) {
+            record = record.substring(0, record.length() - 1);
+        }
+
+        return record;
     }
 
     public int getTotalRecords() throws Exception {

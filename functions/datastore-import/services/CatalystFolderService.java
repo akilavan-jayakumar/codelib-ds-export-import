@@ -3,9 +3,7 @@ package services;
 import com.zc.component.files.ZCFile;
 import com.zc.component.files.ZCFileDetail;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 
 public class CatalystFolderService {
@@ -37,18 +35,14 @@ public class CatalystFolderService {
     }
 
     public File downloadFile(String fileId, String diskFolder, String diskFileName) throws Exception {
-        File outputFile = DiskFileService.createFile(diskFolder, diskFileName);
+        File out = DiskFileService.createFile(diskFolder, diskFileName);
         try (InputStream inputStream = downloadFile(fileId)) {
-            try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
-                int bytesRead;
-                byte[] buffer = new byte[8 * 1024];
-                while ((bytesRead = inputStream.read(buffer)) > 0) {
-                    fileOutputStream.write(buffer, 0, bytesRead);
-                }
+            try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(out))) {
+                inputStream.transferTo(outputStream);
             }
         }
 
-        return outputFile;
+        return out;
 
     }
 

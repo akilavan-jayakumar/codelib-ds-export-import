@@ -5,12 +5,12 @@ import utils.DiskFileUtil;
 import java.io.*;
 import java.util.logging.Logger;
 
-public class CsvProcessor {
+public class CsvFileProcessor {
 
-    private static final Logger LOGGER = Logger.getLogger(CsvProcessor.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(CsvFileProcessor.class.getName());
     private final File file;
 
-    public CsvProcessor(File file) {
+    public CsvFileProcessor(File file) {
         this.file = file;
     }
 

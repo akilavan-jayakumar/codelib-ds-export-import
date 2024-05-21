@@ -30,7 +30,7 @@ public class ImportJobUtil {
         return ImportJobService.getAllImportJobs().stream().filter(obj -> obj.getId().equals(jobId)).findAny().orElse(null);
     }
 
-    public static List<ImportJob> convertTableMetasToImportJobs(List<Table> tables) throws Exception {
+    public static List<ImportJob> createImportJobsFromTable(List<Table> tables,List<File> files) throws Exception {
         List<ImportJob> importJobs = new ArrayList<>();
 
         for (Table table : tables) {
@@ -39,7 +39,7 @@ public class ImportJobUtil {
 
             for (String file : table.getFiles()) {
                 ImportJob importJob = new ImportJob();
-                importJob.setFile_id(file);
+                importJob.setFile(file);
                 importJob.setTable(table.getName());
                 importJob.setOperation(ImportJobOperation.INSERT.value);
                 importJob.setStatus(ImportJobStatus.PENDING.value);
@@ -59,7 +59,7 @@ public class ImportJobUtil {
 
                     for (String file : table.getFiles()) {
                         ImportJob importJob = new ImportJob();
-                        importJob.setFile_id(file);
+                        importJob.setFile(file);
                         importJob.setTable(table.getName());
                         importJob.setOperation(ImportJobOperation.UPDATE.value);
                         importJob.setStatus(ImportJobStatus.PENDING.value);
@@ -75,7 +75,7 @@ public class ImportJobUtil {
 
     public static File downloadJobAsset(String jobId) throws Exception {
         ImportJob importJob = getImportJobById(jobId);
-        ImportFileMeta importFileMeta = ImportFileMetaUtil.getImportFileMetaByFileId(importJob.getFile_id());
+        ImportFileMeta importFileMeta = ImportFileMetaUtil.getImportFileMetaByFileId(importJob.getFile());
         return DatastoreImportUtil.downloadImportAsset(importFileMeta.getFile_id(), importFileMeta.getName());
     }
 
