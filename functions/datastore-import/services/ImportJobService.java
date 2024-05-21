@@ -36,7 +36,7 @@ public class ImportJobService {
             ImportJob targetJob = allImportJobs.stream().filter(obj -> obj.getId().equals(importJob.getId())).findAny().orElse(null);
             if (targetJob != null) {
                 targetJob.setStatus(importJob.getStatus());
-                targetJob.setFile_id(importJob.getFile_id());
+                targetJob.setFile(importJob.getFile());
             }
             replaceImportJobs(allImportJobs);
         }

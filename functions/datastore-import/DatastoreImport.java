@@ -6,16 +6,14 @@ import constants.DatastoreExportImportConstants;
 import enums.ImportJobOperation;
 import enums.ImportJobStatus;
 import enums.JobAction;
-import pojos.ImportFileMeta;
+import handlers.ImportHandler;
 import pojos.ImportJob;
+import pojos.InsertedRecordsDetails;
 import pojos.Table;
+import processors.ImportZipProcessor;
 import utils.DatastoreImportUtil;
-import utils.ImportFileMetaUtil;
-import utils.ImportJobUtil;
-import utils.TableMetaUtil;
 
 import java.io.File;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,22 +37,13 @@ public class DatastoreImport implements ZCFunction {
                     throw new Exception("fileId cannot be empty");
                 }
 
-                List<File> importingFiles = DatastoreImportUtil.readFilesFromZip(fileId);
-                File tableMetaJson = importingFiles.stream().filter(file -> file.getName().equals(DatastoreExportImportConstants.TABLE_META_JSON)).findAny().orElse(null);
+                File zipFile = DatastoreImportUtil.downloadImportAsset(fileId, DatastoreExportImportConstants.IMPORT_ZIP);
 
-                if (tableMetaJson == null) {
-                    throw new Exception("Unable to identify " + DatastoreExportImportConstants.TABLE_META_JSON);
-                }
+                ImportZipProcessor importZipProcessor = new ImportZipProcessor(zipFile);
+                ImportHandler importHandler = importZipProcessor.process();
 
-                List<Table> tables = TableMetaUtil.getAllTableMetaFromFile(tableMetaJson);
-                List<ImportJob> importJobs = ImportJobUtil.convertTableMetasToImportJobs(tables);
-                List<ImportFileMeta> importFileMetas = ImportFileMetaUtil.convertFilesToImportFileMetas(importingFiles);
-                DatastoreImportUtil.rewriteImportJobsFiles(importJobs, importFileMetas);
-
-                ImportFileMetaUtil.createFileMetas(importFileMetas);
-                ImportJobUtil.createImportJobs(importJobs);
-
-                DatastoreImportUtil.runLoadImportJob(importJobs.get(0).getId());
+                DatastoreImportUtil.persistImportDetails(importHandler);
+                DatastoreImportUtil.runLoadImportJob(importHandler.getImportJobs().get(0).getId());
 
 
             } else if (action.equals(JobAction.LOAD.value)) {
@@ -63,37 +52,77 @@ public class DatastoreImport implements ZCFunction {
                     throw new Exception("jobId cannot be empty");
                 }
 
-                ImportJob importJob = ImportJobUtil.getImportJobById(jobId);
-                if (importJob == null) {
+                ImportHandler importHandler = DatastoreImportUtil.getImportDetails(jobId);
+                ImportJob currentImportJob = importHandler.getCurrentImportJob();
+
+                if (currentImportJob == null) {
                     throw new Exception("Unable to identify the job with id " + jobId);
                 }
                 try {
-                    importJob.setStatus(ImportJobStatus.RUNNING.value);
-                    ImportJobUtil.updateImportJob(importJob);
-                    Table table = TableMetaUtil.getTableMeta(importJob.getTable());
-                    File csvFile = ImportJobUtil.downloadJobAsset(jobId);
 
-                    if (importJob.getOperation().equals(ImportJobOperation.INSERT.value)) {
-                        DatastoreImportUtil.insertRecords(csvFile, table);
+                    currentImportJob.setStatus(ImportJobStatus.RUNNING.value);
+                    importHandler.updateImportJob(currentImportJob);
+                    DatastoreImportUtil.persistImportDetails(importHandler);
+
+                    String oldFileId = importHandler.getFileId(currentImportJob.getFile());
+                    Table table = importHandler.getTable(currentImportJob.getTable());
+                    File input = DatastoreImportUtil.downloadImportAsset(oldFileId, currentImportJob.getFile());
+
+
+                    if (currentImportJob.getOperation().equals(ImportJobOperation.INSERT.value)) {
+                        InsertedRecordsDetails insertedRecordsDetails = DatastoreImportUtil.insertRecords(input, table);
+                        String newFileId = DatastoreImportUtil.uploadImportAsset(insertedRecordsDetails.getRecords());
+                        importHandler.putFileId(currentImportJob.getFile(), newFileId);
+                        DatastoreImportUtil.deleteImportAsset(oldFileId);
+
+                        if (importHandler.isParentTable(currentImportJob.getTable())) {
+                            // Construction of mapping file name
+                            String foreignKeyMappingFileName = DatastoreImportUtil.getForeignKeyMappingJsonFileName(currentImportJob.getTable());
+
+                            // Checking any mapping file exists
+                            if (importHandler.containsFileId(foreignKeyMappingFileName)) {
+                                // Updating old mapping file contents
+                                String oldMappingFileId = importHandler.getFileId(foreignKeyMappingFileName);
+                                File existingMappingFile = DatastoreImportUtil.downloadImportAsset(oldMappingFileId, foreignKeyMappingFileName);
+
+                                DatastoreImportUtil.appendMappingToExistingFile(existingMappingFile, insertedRecordsDetails.getMappings());
+                                String newMappingFileId = DatastoreImportUtil.uploadImportAsset(existingMappingFile);
+
+                                importHandler.putFileId(foreignKeyMappingFileName, newMappingFileId);
+                                DatastoreImportUtil.deleteImportAsset(oldMappingFileId);
+                            } else {
+                                // Creating new mapping file contents
+                                File mappingFile = DatastoreImportUtil.createMappingFile(foreignKeyMappingFileName, insertedRecordsDetails.getMappings());
+                                String newMappingFileId = DatastoreImportUtil.uploadImportAsset(mappingFile);
+
+                                importHandler.putFileId(foreignKeyMappingFileName, newMappingFileId);
+                            }
+                        }
+                    } else if (currentImportJob.getOperation().equals(ImportJobOperation.UPDATE.value)) {
+                        DatastoreImportUtil.updateRecords(importHandler);
                     }
 
-                    List<ImportJob> pendingJobs = ImportJobUtil.getAllImportJobsByStatus(ImportJobStatus.PENDING);
+                    currentImportJob.setStatus(ImportJobStatus.SUCCESS.value);
+                    importHandler.updateImportJob(currentImportJob);
+                    DatastoreImportUtil.persistImportDetails(importHandler);
 
-                    if (!pendingJobs.isEmpty()) {
-                        DatastoreImportUtil.runLoadImportJob(pendingJobs.get(0).getId());
+
+                    if (importHandler.isPendingJobExits()) {
+                        DatastoreImportUtil.runLoadImportJob(importHandler.getNextPendingJob().getId());
                     } else {
                         DatastoreImportUtil.runEndImportJob();
                     }
 
-                    importJob.setStatus(ImportJobStatus.SUCCESS.value);
-                    ImportJobUtil.updateImportJob(importJob);
+
                 } catch (Exception exception) {
-                    importJob.setStatus(ImportJobStatus.FAILURE.value);
-                    ImportJobUtil.updateImportJob(importJob);
+                    currentImportJob.setStatus(ImportJobStatus.FAILURE.value);
+                    importHandler.updateImportJob(currentImportJob);
+                    DatastoreImportUtil.persistImportDetails(importHandler);
                     throw exception;
                 }
             } else if (action.equals(JobAction.END.value)) {
-                DatastoreImportUtil.clearImportJobsAssets();
+                ImportHandler importHandler = DatastoreImportUtil.getImportDetails();
+                DatastoreImportUtil.cleanImportJobsAssets(importHandler);
             }
             basicIO.setStatus(200);
             basicIO.write("Data has been imported successfully.");

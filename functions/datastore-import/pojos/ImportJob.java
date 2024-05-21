@@ -5,9 +5,9 @@ import java.util.UUID;
 
 public class ImportJob {
     private final String id;
+    private String file;
     private String table;
     private Integer status;
-    private String file_id;
     private Integer operation;
     private List<String> columns;
 
@@ -35,12 +35,12 @@ public class ImportJob {
         this.status = status;
     }
 
-    public String getFile_id() {
-        return file_id;
+    public String getFile() {
+        return file;
     }
 
-    public void setFile_id(String file_id) {
-        this.file_id = file_id;
+    public void setFile(String file) {
+        this.file = file;
     }
 
     public Integer getOperation() {

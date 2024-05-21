@@ -27,10 +27,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -101,26 +98,54 @@ public class DatastoreExportHandler {
         List<FileMeta> fileMetas = objectMapper.readValue(zcSegment.getCacheValue(CatalystCacheSegments.DS_IMPORT_EXPORT.Keys.DS_EXPORT_FILES), new TypeReference<List<FileMeta>>() {
         });
 
+        HashMap<String, String> tableIdNameMapping = new HashMap<>();
+        HashMap<String, String> columnIdNameMapping = new HashMap<>();
+
         List<Table> tables = new ArrayList<>();
 
         for (ZCTable zcTable : zcTables) {
+            tableIdNameMapping.put(zcTable.getTableId().toString(), zcTable.getName());
+
             Table table = new Table(zcTable.getName());
 
             List<ZCColumn> zcColumns = zcTable.getAllColumns();
             List<Column> columns = new ArrayList<>();
 
             for (ZCColumn zcColumn : zcColumns) {
+                columnIdNameMapping.put(zcColumn.getColumnId().toString(), zcColumn.getColumnName());
+
                 ColumnProperties columnProperties = new ColumnProperties();
                 columnProperties.setMandatory(zcColumn.getIsMandatory());
 
+
                 Column column = new Column(zcColumn.getColumnName(), zcColumn.getDataType());
                 column.setProperties(columnProperties);
+
+                if (zcColumn.getDataType().equals("foreign key")) {
+                    ParentTable parentTable = new ParentTable();
+                    parentTable.setTable(zcColumn.getParentTable());
+                    parentTable.setColumn(zcColumn.getParentColumn());
+                    column.setParent(parentTable);
+                }
 
                 columns.add(column);
             }
             table.setColumns(columns);
             table.setFiles(fileMetas.stream().filter(obj -> obj.getTable().equals(zcTable.getName())).map(FileMeta::getName).toList());
             tables.add(table);
+        }
+
+
+        for (Table table : tables) {
+            for (Column column : table.getColumns()) {
+                if (column.getParent() != null) {
+                    String tableId = column.getParent().getTable();
+                    String columnId = column.getParent().getColumn();
+
+                    column.getParent().setTable(tableIdNameMapping.get(tableId));
+                    column.getParent().setColumn(columnIdNameMapping.get(columnId));
+                }
+            }
         }
 
         ZCFolder zcFolder = ZCFile.getInstance().getFolder(CatalystFilestoreFolders.DATASTORE_EXPORT_IMPORT);

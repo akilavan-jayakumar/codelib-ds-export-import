@@ -14,7 +14,6 @@ public class TableMetaUtil {
     }
 
     public static Table getTableMeta(String table) throws Exception {
-
         ImportFileMeta tableMetaJsonFileMeta = ImportFileMetaUtil.getAllImportFileMeta().stream().filter(obj -> obj.getName().equals(DatastoreExportImportConstants.TABLE_META_JSON)).findAny().orElse(null);
 
         if (tableMetaJsonFileMeta == null) {

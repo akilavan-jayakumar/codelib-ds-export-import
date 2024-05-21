@@ -9,12 +9,16 @@ public class CatalystCacheService {
         this.segment = segment;
     }
 
+    public static CatalystCacheService getInstance(String segment) {
+        return new CatalystCacheService(segment);
+    }
+
     public String getValue(String key) throws Exception {
         return ZCCache.getInstance().getSegment(segment).getCacheValue(key);
     }
 
     public String getValue(String key, String defaultValue) throws Exception {
-        String value = ZCCache.getInstance().getSegment(segment).getCacheValue(key);
+        String value = getValue(key);
         return value != null ? value : defaultValue;
 
     }
@@ -25,8 +29,5 @@ public class CatalystCacheService {
 
     public void deleteValue(String key) throws Exception {
         ZCCache.getInstance().getSegment(segment).deleteCacheValue(key);
-    }
-
-    public static class ImportFileMetaService {
     }
 }

@@ -3,7 +3,7 @@ package utils;
 import constants.DatastoreExportImportUrlConstants;
 import enums.JobStatus;
 import pojos.ExportJob;
-import processors.CsvProcessor;
+import processors.CsvFileProcessor;
 import services.ExportJobService;
 
 import java.io.File;
@@ -61,10 +61,10 @@ public class ExportJobUtil {
     public static List<File> getExportJobReports(ExportJob exportJob) throws Exception {
         List<File> exportJobReports = new ArrayList<>();
         File masterFile = ExportJobService.getExportReport(exportJob.getJobId(), CSV_FILES_DIR, getCsvFileName(exportJob, ""));
-        CsvProcessor csvProcessor = new CsvProcessor(masterFile);
+        CsvFileProcessor csvFileProcessor = new CsvFileProcessor(masterFile);
 
 
-        int totalRecords = csvProcessor.getTotalRecords();
+        int totalRecords = csvFileProcessor.getTotalRecords();
         if (totalRecords > MAX_RECORDS_IN_CSV) {
             int totalFiles = (int) Math.ceil((double) totalRecords / MAX_RECORDS_IN_CSV);
 
@@ -73,7 +73,7 @@ public class ExportJobUtil {
                 int start = (i - 1) * MAX_RECORDS_IN_CSV;
                 int end = start + MAX_RECORDS_IN_CSV;
 
-                exportJobReports.add(csvProcessor.slice(start, end, CSV_FILES_DIR, getCsvFileName(exportJob, String.valueOf(i))));
+                exportJobReports.add(csvFileProcessor.slice(start, end, CSV_FILES_DIR, getCsvFileName(exportJob, String.valueOf(i))));
 
             }
             Files.delete(masterFile.toPath());
