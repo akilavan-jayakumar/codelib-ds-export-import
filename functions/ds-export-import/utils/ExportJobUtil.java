@@ -38,9 +38,9 @@ public class ExportJobUtil {
 
     public static List<ExportJob> getAllJobs(List<JobStatus> statuses) throws Exception {
         List<ExportJob> exportJobs = getAllJobs();
-        List<Integer> statusValues = statuses.stream().map(obj -> obj.value).toList();
+        List<String> statusValues = statuses.stream().map(obj -> obj.value).toList();
 
-        return exportJobs.stream().filter(obj -> statusValues.contains(obj.getStatus())).toList();
+        return exportJobs.stream().filter(obj -> statusValues.contains(obj.getStatus().toString())).toList();
     }
 
     public static void createJob(ExportJob exportJob) throws Exception {
@@ -50,7 +50,7 @@ public class ExportJobUtil {
     public static void executeJob(ExportJob exportJob, String domain) throws Exception {
         String jobId = ExportJobService.executeJob(exportJob, domain + DatastoreExportImportUrlConstants.SERVER + DatastoreExportImportUrlConstants.DATASTORE_EXPORT_IMPORT + DatastoreExportImportUrlConstants.EXPORT + DatastoreExportImportUrlConstants.CALLBACK, new HashMap<>());
         exportJob.setJobId(jobId);
-        exportJob.setStatus(JobStatus.RUNNING.value);
+        exportJob.setStatus(Integer.parseInt(JobStatus.RUNNING.value));
         updateJob(exportJob);
     }
 

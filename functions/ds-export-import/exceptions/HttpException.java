@@ -17,8 +17,8 @@ public class HttpException extends Exception {
     }
 
     public HttpException(CommonResponse commonResponse) {
-        super(commonResponse.message());
-        this.httpStatus = commonResponse.httpStatus();
+        super(commonResponse.message);
+        this.httpStatus = commonResponse.httpStatus;
 
     }
 

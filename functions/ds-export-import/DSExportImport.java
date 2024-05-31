@@ -13,22 +13,24 @@ public class DSExportImport implements CatalystAdvancedIOHandler {
     private static final Logger LOGGER = Logger.getLogger(DSExportImport.class.getName());
 
     @Override
-    public void runner(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public void runner(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
         ResponseWrapper responseWrapper = new ResponseWrapper();
 
         try {
             ZCProject.initProject();
-            if (request.getMethod().equals("GET")) {
-                switch (request.getRequestURI()) {
-                    case "/export": {
-                        responseWrapper = DatastoreExportController.startExport(request, response);
+            if (httpServletRequest.getMethod().equals("GET")) {
+                if(httpServletRequest.getRequestURI().matches("^/jobs/[0-9]+$")){
+                    responseWrapper = DatastoreExportController.getJobDetail(httpServletRequest,httpServletResponse);
+                }
+            } else if (httpServletRequest.getMethod().equals("POST")) {
+                switch (httpServletRequest.getRequestURI()) {
+                    case "/export/callback": {
+                        responseWrapper = DatastoreExportController.onExportCallback(httpServletRequest,httpServletResponse);
                         break;
                     }
-                }
-            } else if (request.getMethod().equals("POST")) {
-                switch (request.getRequestURI()) {
-                    case "/export/callback": {
-                        responseWrapper = DatastoreExportController.onExportCallback(request,response);
+                    case "/jobs/export": {
+                        responseWrapper = DatastoreExportController.createDatastoreExport(httpServletRequest,httpServletResponse);
+                        break;
                     }
                 }
             }
@@ -38,7 +40,7 @@ public class DSExportImport implements CatalystAdvancedIOHandler {
             responseWrapper = ErrorHandler.handleError(e);
         }
 
-        ResponseHandler.handleResponse(response, responseWrapper);
+        ResponseHandler.handleResponse(httpServletResponse, responseWrapper);
     }
 
 }

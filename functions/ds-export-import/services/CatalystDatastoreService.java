@@ -1,10 +1,14 @@
 package services;
 
+import com.zc.component.object.ZCObject;
+import com.zc.component.object.ZCTable;
 import com.zc.component.object.bulk.ZCDataStoreBulk;
+import tables.DatastoreExportImportJobDetailsTable;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -31,5 +35,9 @@ public class CatalystDatastoreService {
 
             return file;
         }
+    }
+
+    public static List<ZCTable> getAllTables() throws Exception {
+        return ZCObject.getInstance().getAllTables().stream().filter(obj -> !obj.getName().equals(DatastoreExportImportJobDetailsTable.NAME)).toList();
     }
 }

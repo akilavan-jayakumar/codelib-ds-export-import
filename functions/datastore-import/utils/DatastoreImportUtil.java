@@ -23,7 +23,7 @@ public class DatastoreImportUtil {
     private static final Integer MAX_RECORDS_PER_OPERATION = 200;
 
     private static boolean isSystemColumn(String columnName) {
-        return CatalystDatastoreTableConstants.SystemFields.ROWID.equals(columnName) || CatalystDatastoreTableConstants.SystemFields.CREATORID.equals(columnName) || CatalystDatastoreTableConstants.SystemFields.CREATEDTIME.equals(columnName) || CatalystDatastoreTableConstants.SystemFields.MODIFIEDTIME.equals(columnName);
+        return CatalystDatastoreTableConstants.SystemDefinedColumns.ROWID.equals(columnName) || CatalystDatastoreTableConstants.SystemDefinedColumns.CREATORID.equals(columnName) || CatalystDatastoreTableConstants.SystemDefinedColumns.CREATEDTIME.equals(columnName) || CatalystDatastoreTableConstants.SystemDefinedColumns.MODIFIEDTIME.equals(columnName);
     }
 
     public static String getForeignKeyMappingJsonFileName(String tableName) {
@@ -117,7 +117,7 @@ public class DatastoreImportUtil {
             List<HashMap<String, String>> oldRecords = csvReader.getRecordsAsJson(start, end);
 
             oldRecords.forEach(obj -> {
-                oldIdsMapping.add(obj.get(CatalystDatastoreTableConstants.SystemFields.ROWID));
+                oldIdsMapping.add(obj.get(CatalystDatastoreTableConstants.SystemDefinedColumns.ROWID));
                 HashMap<String, String> record = new HashMap<>();
                 for (String column : columns) {
                     record.put(column, obj.get(column));
@@ -129,10 +129,10 @@ public class DatastoreImportUtil {
             List<HashMap<String, String>> newRecords = DatastoreImportService.insertRecords(table.getName(), tempRecords);
 
             for (int i = 0; i < newRecords.size(); i++) {
-                String rowid = newRecords.get(i).get(CatalystDatastoreTableConstants.SystemFields.ROWID);
+                String rowid = newRecords.get(i).get(CatalystDatastoreTableConstants.SystemDefinedColumns.ROWID);
 
                 mappings.put(oldIdsMapping.get(i), rowid);
-                oldRecords.get(i).put(CatalystDatastoreTableConstants.SystemFields.ROWID, rowid);
+                oldRecords.get(i).put(CatalystDatastoreTableConstants.SystemDefinedColumns.ROWID, rowid);
             }
 
             csvWriter.writeRecords(oldRecords);
@@ -178,7 +178,7 @@ public class DatastoreImportUtil {
 
             records.forEach(obj -> {
                 HashMap<String, String> record = new HashMap<>();
-                record.put(CatalystDatastoreTableConstants.SystemFields.ROWID, obj.get(CatalystDatastoreTableConstants.SystemFields.ROWID));
+                record.put(CatalystDatastoreTableConstants.SystemDefinedColumns.ROWID, obj.get(CatalystDatastoreTableConstants.SystemDefinedColumns.ROWID));
                 for (String column : currentImportJob.getColumns()) {
                     record.put(column, columnForeignKeyIdMappings.get(column).get(obj.get(column)));
                 }
