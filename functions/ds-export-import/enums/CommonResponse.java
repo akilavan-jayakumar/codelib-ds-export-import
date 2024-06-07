@@ -3,18 +3,20 @@ package enums;
 import org.springframework.http.HttpStatus;
 
 public enum CommonResponse {
-    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND,CommonResponseMessage.RESOURCE_NOT_FOUND),
-    EXPORT_JOB_NOT_FOUND(HttpStatus.NOT_FOUND,CommonResponseMessage.EXPORT_JOB_NOT_FOUND),
-    OPERATION_FORBIDDEN_DUE_TO_IMPORT(HttpStatus.FORBIDDEN,CommonResponseMessage.OPERATION_FORBIDDEN_DUE_TO_IMPORT),
-    OPERATION_FORBIDDEN_DUE_TO_EXPORT(HttpStatus.FORBIDDEN,CommonResponseMessage.OPERATION_FORBIDDEN_DUE_TO_EXPORT),
-    DATASTORE_EXPORT_FORBIDDEN(HttpStatus.FORBIDDEN, CommonResponseMessage.OPERATION_FORBIDDEN_DUE_TO_EXPORT);
+    JOB_NOT_FOUND(HttpStatus.NOT_FOUND,CommonResponseMessage.JOB_NOT_FOUND),
+    JOB_CREATION_FORBIDDEN_DUE_TO_IMPORT(HttpStatus.FORBIDDEN,CommonResponseMessage.JOB_CREATION_FORBIDDEN_DUE_TO_IMPORT),
+    JOB_CREATION_FORBIDDEN_DUE_TO_EXPORT(HttpStatus.FORBIDDEN,CommonResponseMessage.JOB_CREATION_FORBIDDEN_DUE_TO_EXPORT),
+    JOB_CREATION_FORBIDDEN_DUE_TO_NO_TABLE(HttpStatus.FORBIDDEN,CommonResponseMessage.JOB_CREATION_FORBIDDEN_DUE_TO_NO_TABLE),
+    GET_EXPORT_ZIP_FORBIDDEN_DUE_TO_FAILED_JOB(HttpStatus.FORBIDDEN,CommonResponseMessage.GET_EXPORT_ZIP_FORBIDDEN_DUE_TO_FAILED_JOB),
+    GET_EXPORT_ZIP_FORBIDDEN_DUE_TO_PENDING_JOB(HttpStatus.FORBIDDEN,CommonResponseMessage.GET_EXPORT_ZIP_FORBIDDEN_DUE_TO_PENDING_JOB),
+    GET_EXPORT_ZIP_FORBIDDEN_DUE_TO_RUNNING_JOB(HttpStatus.FORBIDDEN,CommonResponseMessage.GET_EXPORT_ZIP_FORBIDDEN_DUE_TO_RUNNING_JOB);
 
     public final HttpStatus httpStatus;
     public final String message;
 
     CommonResponse(HttpStatus httpStatus, CommonResponseMessage commonResponseMessage) {
         this.httpStatus = httpStatus;
-        this.message = commonResponseMessage.message();
+        this.message = commonResponseMessage.message;
     }
 
 

@@ -19,8 +19,8 @@ import constants.DatastoreExportImportConstants;
 import enums.JobStatus;
 import pojos.JobDetail;
 import pojos.JobDetailParam;
-import tablefilters.DatastoreExportImportJobDetailsTableFilter;
-import tables.DatastoreExportImportJobDetailsTable;
+import tablefilters.DatastoreImportExportJobDetailsTableFilter;
+import tables.DatastoreImportExportJobDetailsTable;
 
 import java.io.File;
 import java.io.InputStream;
@@ -40,37 +40,37 @@ public class DatastoreImportExportService {
         }).toList();
     }
 
-    private static DatastoreExportImportJobDetailsTableFilter createDatastoreExportImportJobDetailsTableFilter(List<String> rowIds, List<String> statuses, List<String> operations) {
-        DatastoreExportImportJobDetailsTableFilter datastoreExportImportJobDetailsTableFilter = DatastoreExportImportJobDetailsTableFilter.getInstance();
+    private static DatastoreImportExportJobDetailsTableFilter createDatastoreExportImportJobDetailsTableFilter(List<String> rowIds, List<Integer> statuses, List<Integer> operations) {
+        DatastoreImportExportJobDetailsTableFilter datastoreImportExportJobDetailsTableFilter = DatastoreImportExportJobDetailsTableFilter.getInstance();
 
         if (!rowIds.isEmpty()) {
-            datastoreExportImportJobDetailsTableFilter.rowIds.addAll(rowIds.stream().map(QueryUtil::toQueryString).toList());
+            datastoreImportExportJobDetailsTableFilter.rowIds.addAll(rowIds.stream().map(QueryUtil::toQueryString).toList());
         }
 
         if (!statuses.isEmpty()) {
-            datastoreExportImportJobDetailsTableFilter.statuses.addAll(statuses.stream().map(QueryUtil::toQueryString).toList());
+            datastoreImportExportJobDetailsTableFilter.statuses.addAll(statuses.stream().map(String::valueOf).map(QueryUtil::toQueryString).toList());
         }
 
         if (!operations.isEmpty()) {
-            datastoreExportImportJobDetailsTableFilter.operations.addAll(operations.stream().map(QueryUtil::toQueryString).toList());
+            datastoreImportExportJobDetailsTableFilter.operations.addAll(operations.stream().map(String::valueOf).map(QueryUtil::toQueryString).toList());
         }
 
 
-        return datastoreExportImportJobDetailsTableFilter;
+        return datastoreImportExportJobDetailsTableFilter;
     }
 
-    private static List<JobDetail> getJobDetailsByLimit(Integer offset, Integer limit, DatastoreExportImportJobDetailsTableFilter datastoreExportImportJobDetailsTableFilter) throws Exception {
+    private static List<JobDetail> getJobDetailsByLimit(Integer offset, Integer limit, DatastoreImportExportJobDetailsTableFilter datastoreImportExportJobDetailsTableFilter) throws Exception {
         OrderByBuilder orderByBuilder = OrderByBuilder.getInstance();
-        orderByBuilder.add(OrderBy.getInstance(DatastoreExportImportJobDetailsTable.CREATEDTIME, SortOrder.DESC));
+        orderByBuilder.add(OrderBy.getInstance(DatastoreImportExportJobDetailsTable.CREATEDTIME, SortOrder.DESC));
 
         CriteriaBuilder criteriaBuilder = CriteriaBuilder.getInstance();
-        criteriaBuilder.add(datastoreExportImportJobDetailsTableFilter.rowIds);
-        criteriaBuilder.add(datastoreExportImportJobDetailsTableFilter.statuses);
-        criteriaBuilder.add(datastoreExportImportJobDetailsTableFilter.operations);
+        criteriaBuilder.add(datastoreImportExportJobDetailsTableFilter.rowIds);
+        criteriaBuilder.add(datastoreImportExportJobDetailsTableFilter.statuses);
+        criteriaBuilder.add(datastoreImportExportJobDetailsTableFilter.operations);
 
         QueryBuilder queryBuilder = QueryBuilder.getInstance(Operation.SELECT);
-        queryBuilder.select(DatastoreExportImportJobDetailsTable.ROWID, DatastoreExportImportJobDetailsTable.STATUS, DatastoreExportImportJobDetailsTable.MESSAGE, DatastoreExportImportJobDetailsTable.OPERATION, DatastoreExportImportJobDetailsTable.CREATEDTIME, DatastoreExportImportJobDetailsTable.PARAMS_FILE_ID, DatastoreExportImportJobDetailsTable.PARAMS_FILE_NAME);
-        queryBuilder.from(DatastoreExportImportJobDetailsTable.NAME);
+        queryBuilder.select(DatastoreImportExportJobDetailsTable.ROWID, DatastoreImportExportJobDetailsTable.STATUS, DatastoreImportExportJobDetailsTable.MESSAGE, DatastoreImportExportJobDetailsTable.OPERATION, DatastoreImportExportJobDetailsTable.CREATEDTIME, DatastoreImportExportJobDetailsTable.PARAMS_FILE_ID, DatastoreImportExportJobDetailsTable.ASSET_FILE_ID, DatastoreImportExportJobDetailsTable.PARAMS_FILE_NAME, DatastoreImportExportJobDetailsTable.ASSET_FILE_NAME);
+        queryBuilder.from(DatastoreImportExportJobDetailsTable.NAME);
         queryBuilder.where(criteriaBuilder.build());
         queryBuilder.orderBy(orderByBuilder.build());
         queryBuilder.limit(limit);
@@ -82,19 +82,33 @@ public class DatastoreImportExportService {
 
     }
 
-    public static List<JobDetail> getJobDetailsByLimit(Integer offset, Integer limit, List<String> statuses, List<String> operations) throws Exception {
-        DatastoreExportImportJobDetailsTableFilter datastoreExportImportJobDetailsTableFilter = createDatastoreExportImportJobDetailsTableFilter(Collections.emptyList(), statuses, operations);
-        return getJobDetailsByLimit(offset, limit, datastoreExportImportJobDetailsTableFilter);
+    public static List<JobDetail> getJobDetailsByLimit(Integer offset, Integer limit, List<Integer> statuses, List<Integer> operations) throws Exception {
+        DatastoreImportExportJobDetailsTableFilter datastoreImportExportJobDetailsTableFilter = createDatastoreExportImportJobDetailsTableFilter(Collections.emptyList(), statuses, operations);
+        return getJobDetailsByLimit(offset, limit, datastoreImportExportJobDetailsTableFilter);
     }
 
-    public static JobDetail getJobDetailById(String rowId) throws Exception {
-        DatastoreExportImportJobDetailsTableFilter datastoreExportImportJobDetailsTableFilter = createDatastoreExportImportJobDetailsTableFilter(List.of(rowId), Collections.emptyList(), Collections.emptyList());
-        return getJobDetailsByLimit(1, 1, datastoreExportImportJobDetailsTableFilter).stream().findAny().orElse(null);
+    public static JobDetail getJobDetailById(String jobId) throws Exception {
+        DatastoreImportExportJobDetailsTableFilter datastoreImportExportJobDetailsTableFilter = createDatastoreExportImportJobDetailsTableFilter(List.of(jobId), Collections.emptyList(), Collections.emptyList());
+        return getJobDetailsByLimit(1, 1, datastoreImportExportJobDetailsTableFilter).stream().findAny().orElse(null);
+    }
+
+    public static JobDetail getJobDetailWithParamsById(String jobId) throws Exception {
+        JobDetail jobDetail = getJobDetailById(jobId);
+
+        if (jobDetail == null) {
+            return null;
+        }
+
+        JobDetailParam jobDetailParam = getJobDetailParams(jobDetail.getParamsFileId(), jobDetail.getParamsFileName());
+        jobDetail.setParams(jobDetailParam);
+
+
+        return jobDetail;
     }
 
     public static JobDetail getPendingOrRunningJobDetail() throws Exception {
-        DatastoreExportImportJobDetailsTableFilter datastoreExportImportJobDetailsTableFilter = createDatastoreExportImportJobDetailsTableFilter(Collections.emptyList(), List.of(JobStatus.PENDING.value, JobStatus.RUNNING.value), Collections.emptyList());
-        return getJobDetailsByLimit(1, 1, datastoreExportImportJobDetailsTableFilter).stream().findAny().orElse(null);
+        DatastoreImportExportJobDetailsTableFilter datastoreImportExportJobDetailsTableFilter = createDatastoreExportImportJobDetailsTableFilter(Collections.emptyList(), List.of(JobStatus.PENDING.value, JobStatus.RUNNING.value), Collections.emptyList());
+        return getJobDetailsByLimit(1, 1, datastoreImportExportJobDetailsTableFilter).stream().findAny().orElse(null);
     }
 
     public static JobDetailParam getJobDetailParams(String paramsFileId, String paramsFileName) throws Exception {
@@ -103,20 +117,33 @@ public class DatastoreImportExportService {
         File file = downloadAsset(paramsFileId, paramsFileName);
         String json = DiskFileService.readFile(file);
 
-        return objectMapper.readValue(json, new TypeReference<JobDetailParam>() {
+        JobDetailParam jobDetailParam = objectMapper.readValue(json, new TypeReference<JobDetailParam>() {
         });
+
+        DiskFileService.deleteFile(file.toPath());
+
+        return jobDetailParam;
     }
 
     public static void createJobDetails(List<JobDetail> jobDetails) throws Exception {
-        List<ZCRowObject> rowObjects = ZCObject.getInstance().getTable(DatastoreExportImportJobDetailsTable.NAME).insertRows(jobDetails.stream().map(JobDetail::getInsertPayload).toList());
+        List<ZCRowObject> rowObjects = ZCObject.getInstance().getTable(DatastoreImportExportJobDetailsTable.NAME).insertRows(jobDetails.stream().map(JobDetail::getInsertPayload).toList());
 
         for (int i = 0; i < rowObjects.size(); i++) {
-            jobDetails.get(i).setRowId(rowObjects.get(i).get(DatastoreExportImportJobDetailsTable.ROWID.Raw.value).toString());
+            jobDetails.get(i).setRowId(rowObjects.get(i).get(DatastoreImportExportJobDetailsTable.ROWID.Raw.value).toString());
+            jobDetails.get(i).setCreatedTime(rowObjects.get(i).get(DatastoreImportExportJobDetailsTable.CREATEDTIME.Raw.value).toString());
         }
     }
 
     public static void createJobDetail(JobDetail jobDetail) throws Exception {
         createJobDetails(List.of(jobDetail));
+    }
+
+    public static void updateJobDetails(List<JobDetail> jobDetails) throws Exception {
+        ZCObject.getInstance().getTable(DatastoreImportExportJobDetailsTable.NAME).updateRows(jobDetails.stream().map(JobDetail::getUpdatePayload).toList());
+    }
+
+    public static void updateJobDetail(JobDetail jobDetail) throws Exception {
+        updateJobDetails(List.of(jobDetail));
     }
 
     public static File createParamsFile(JobDetailParam jobDetailParam) throws Exception {
@@ -147,5 +174,21 @@ public class DatastoreImportExportService {
         return file;
     }
 
+    public static void deleteAsset(String fileId) throws Exception {
+        ZCFile.getInstance().getFolderInstance(CatalystFilestoreFolders.DATASTORE_EXPORT_IMPORT).deleteFile(Long.parseLong(fileId));
+    }
+
+    public static void persistJobDetail(JobDetail jobDetail) throws Exception {
+        File paramsFile = createParamsFile(jobDetail.getParams());
+        String oldParamsFileId = jobDetail.getParamsFileId();
+        String newParamsFileId = uploadAsset(paramsFile, true);
+
+        jobDetail.setParamsFileId(newParamsFileId);
+        jobDetail.setParamsFileName(paramsFile.getName());
+
+        updateJobDetail(jobDetail);
+        deleteAsset(oldParamsFileId);
+
+    }
 
 }

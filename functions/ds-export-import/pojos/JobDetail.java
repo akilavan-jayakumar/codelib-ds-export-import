@@ -3,19 +3,21 @@ package pojos;
 import com.zc.component.object.ZCRowObject;
 import enums.JobOperation;
 import enums.JobStatus;
-import tables.DatastoreExportImportJobDetailsTable;
+import tables.DatastoreImportExportJobDetailsTable;
 
 import java.util.HashMap;
 
 
 public class JobDetail {
     private String rowId;
-    private String status;
+    private Integer status;
     private String message;
-    private String operation;
+    private Integer operation;
     private String createdTime;
     private String paramsFileId;
+    private String assetFileId;
     private String paramsFileName;
+    private String assetFileName;
     private JobDetailParam params;
 
     public String getRowId() {
@@ -34,19 +36,19 @@ public class JobDetail {
         this.message = message;
     }
 
-    public String getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 
-    public String getOperation() {
+    public Integer getOperation() {
         return operation;
     }
 
-    public void setOperation(String operation) {
+    public void setOperation(Integer operation) {
         this.operation = operation;
     }
 
@@ -66,12 +68,28 @@ public class JobDetail {
         this.paramsFileId = paramsFileId;
     }
 
+    public String getAssetFileId() {
+        return assetFileId;
+    }
+
+    public void setAssetFileId(String assetFileId) {
+        this.assetFileId = assetFileId;
+    }
+
     public String getParamsFileName() {
         return paramsFileName;
     }
 
     public void setParamsFileName(String paramsFileName) {
         this.paramsFileName = paramsFileName;
+    }
+
+    public String getAssetFileName() {
+        return assetFileName;
+    }
+
+    public void setAssetFileName(String assetFileName) {
+        this.assetFileName = assetFileName;
     }
 
     public JobDetailParam getParams() {
@@ -85,23 +103,43 @@ public class JobDetail {
     public ZCRowObject getInsertPayload() {
         ZCRowObject zcRowObject = ZCRowObject.getInstance();
 
-        zcRowObject.set(DatastoreExportImportJobDetailsTable.STATUS.Raw.value, status);
-        zcRowObject.set(DatastoreExportImportJobDetailsTable.MESSAGE.Raw.value, message);
-        zcRowObject.set(DatastoreExportImportJobDetailsTable.OPERATION.Raw.value, operation);
-        zcRowObject.set(DatastoreExportImportJobDetailsTable.PARAMS_FILE_ID.Raw.value, paramsFileId);
-        zcRowObject.set(DatastoreExportImportJobDetailsTable.PARAMS_FILE_NAME.Raw.value, paramsFileName);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.STATUS.Raw.value, status);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.MESSAGE.Raw.value, message);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.OPERATION.Raw.value, operation);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.PARAMS_FILE_ID.Raw.value, paramsFileId);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.ASSET_FILE_ID.Raw.value, assetFileId);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.PARAMS_FILE_NAME.Raw.value, paramsFileName);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.ASSET_FILE_NAME.Raw.value, assetFileName);
+
+        return zcRowObject;
+    }
+
+    public ZCRowObject getUpdatePayload() {
+        ZCRowObject zcRowObject = ZCRowObject.getInstance();
+
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.ROWID.Raw.value, rowId);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.STATUS.Raw.value, status);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.MESSAGE.Raw.value, message);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.OPERATION.Raw.value, operation);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.PARAMS_FILE_ID.Raw.value, paramsFileId);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.ASSET_FILE_ID.Raw.value, assetFileId);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.PARAMS_FILE_NAME.Raw.value, paramsFileName);
+        zcRowObject.set(DatastoreImportExportJobDetailsTable.ASSET_FILE_NAME.Raw.value, assetFileName);
 
         return zcRowObject;
     }
 
     public void loadFromQueryResult(ZCRowObject zcRowObject) {
-        this.rowId = String.valueOf(zcRowObject.get(DatastoreExportImportJobDetailsTable.NAME, DatastoreExportImportJobDetailsTable.ROWID.Raw.value));
-        this.status = String.valueOf(zcRowObject.get(DatastoreExportImportJobDetailsTable.NAME, DatastoreExportImportJobDetailsTable.STATUS.Raw.value));
-        this.message = String.valueOf(zcRowObject.get(DatastoreExportImportJobDetailsTable.NAME, DatastoreExportImportJobDetailsTable.MESSAGE.Raw.value));
-        this.operation = String.valueOf(zcRowObject.get(DatastoreExportImportJobDetailsTable.NAME, DatastoreExportImportJobDetailsTable.OPERATION.Raw.value));
-        this.createdTime = String.valueOf(zcRowObject.get(DatastoreExportImportJobDetailsTable.NAME, DatastoreExportImportJobDetailsTable.CREATEDTIME.Raw.value));
-        this.paramsFileId = String.valueOf(zcRowObject.get(DatastoreExportImportJobDetailsTable.NAME, DatastoreExportImportJobDetailsTable.PARAMS_FILE_ID.Raw.value));
-        this.paramsFileName = String.valueOf(zcRowObject.get(DatastoreExportImportJobDetailsTable.NAME, DatastoreExportImportJobDetailsTable.PARAMS_FILE_NAME.Raw.value));
+        this.rowId = String.valueOf(zcRowObject.get(DatastoreImportExportJobDetailsTable.NAME, DatastoreImportExportJobDetailsTable.ROWID.Raw.value));
+        this.message = String.valueOf(zcRowObject.get(DatastoreImportExportJobDetailsTable.NAME, DatastoreImportExportJobDetailsTable.MESSAGE.Raw.value));
+        this.createdTime = String.valueOf(zcRowObject.get(DatastoreImportExportJobDetailsTable.NAME, DatastoreImportExportJobDetailsTable.CREATEDTIME.Raw.value));
+        this.paramsFileId = String.valueOf(zcRowObject.get(DatastoreImportExportJobDetailsTable.NAME, DatastoreImportExportJobDetailsTable.PARAMS_FILE_ID.Raw.value));
+        this.assetFileId = String.valueOf(zcRowObject.get(DatastoreImportExportJobDetailsTable.NAME, DatastoreImportExportJobDetailsTable.ASSET_FILE_ID.Raw.value));
+        this.paramsFileName = String.valueOf(zcRowObject.get(DatastoreImportExportJobDetailsTable.NAME, DatastoreImportExportJobDetailsTable.PARAMS_FILE_NAME.Raw.value));
+        this.assetFileName = String.valueOf(zcRowObject.get(DatastoreImportExportJobDetailsTable.NAME, DatastoreImportExportJobDetailsTable.ASSET_FILE_NAME.Raw.value));
+
+        this.status = Integer.parseInt(String.valueOf(zcRowObject.get(DatastoreImportExportJobDetailsTable.NAME, DatastoreImportExportJobDetailsTable.STATUS.Raw.value)));
+        this.operation = Integer.parseInt(String.valueOf(zcRowObject.get(DatastoreImportExportJobDetailsTable.NAME, DatastoreImportExportJobDetailsTable.OPERATION.Raw.value)));
     }
 
     public HashMap<String, Object> getResponseMap() {
@@ -114,7 +152,7 @@ public class JobDetail {
         hashMap.put("operation", JobOperation.getJobOperationByValue(operation).mappedValue);
 
         if (params != null) {
-            hashMap.put("params", params);
+            hashMap.put("params", params.generateResponseMap());
         }
 
         return hashMap;

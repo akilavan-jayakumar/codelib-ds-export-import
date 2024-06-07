@@ -4,7 +4,8 @@ public class Column {
    private String name;
    private String type;
    private ParentTable parent;
-   private ColumnProperties properties;
+
+   public Column(){}
 
     public Column(String name, String type) {
         this.name = name;
@@ -35,11 +36,4 @@ public class Column {
         this.parent = parent;
     }
 
-    public ColumnProperties getProperties() {
-        return properties;
-    }
-
-    public void setProperties(ColumnProperties properties) {
-        this.properties = properties;
-    }
 }

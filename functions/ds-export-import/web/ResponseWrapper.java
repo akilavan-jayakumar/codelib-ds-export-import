@@ -1,23 +1,19 @@
 package web;
 
 
-import enums.ResponseType;
+import enums.MimeType;
 import org.springframework.http.HttpStatus;
 
 import java.util.HashMap;
 
 public class ResponseWrapper {
-    private final ResponseType responseType;
+    private final MimeType mimeType;
     private Object data;
     private String message;
     private HttpStatus httpStatus;
 
-    public ResponseWrapper() {
-        this.responseType = ResponseType.APPLICATION_JSON;
-    }
-
-    public ResponseWrapper(ResponseType responseType) {
-        this.responseType = responseType;
+    public ResponseWrapper(MimeType mimeType) {
+        this.mimeType = mimeType;
     }
 
     public Object getData() {
@@ -44,8 +40,8 @@ public class ResponseWrapper {
         this.httpStatus = httpStatus;
     }
 
-    public ResponseType getResponseType() {
-        return responseType;
+    public MimeType getResponseType() {
+        return mimeType;
     }
 
     public HashMap<String, Object> getResponseMap() throws Exception {

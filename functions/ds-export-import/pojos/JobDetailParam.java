@@ -9,6 +9,7 @@ public class JobDetailParam {
    private List<Table> tables =  new ArrayList<>();
    private List<SubJob> subJobs = new ArrayList<>();
    private Map<String,String> files =  new HashMap<>();
+   private List<SelectedTable> selectedTables =  new ArrayList<>();
 
    public List<Table> getTables() {
       return tables;
@@ -32,5 +33,19 @@ public class JobDetailParam {
 
    public void setFiles(Map<String, String> files) {
       this.files = files;
+   }
+
+   public List<SelectedTable> getSelectedTables() {
+      return selectedTables;
+   }
+
+   public void setSelectedTables(List<SelectedTable> selectedTables) {
+      this.selectedTables = selectedTables;
+   }
+
+   public Map<String,Object> generateResponseMap(){
+      HashMap<String,Object> hashMap =  new HashMap<>();
+      hashMap.put("selectedTables",selectedTables);
+      return hashMap;
    }
 }

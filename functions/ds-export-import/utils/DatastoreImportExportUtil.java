@@ -1,61 +1,33 @@
 package utils;
 
-import com.zc.component.object.ZCColumn;
-import com.zc.component.object.ZCTable;
-import pojos.Column;
-import pojos.JobDetailParam;
-import pojos.ParentTable;
-import pojos.Table;
+import constants.DatastoreExportImportUrlConstants;
+import enums.JobStatus;
+import pojos.SubJob;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
+import java.util.StringJoiner;
 
 public class DatastoreImportExportUtil {
-    public static JobDetailParam convertZCTablesToJobDetailsParams(List<ZCTable> zcTables) throws Exception {
-        List<Table> tables = new ArrayList<>();
-        HashMap<String, String> tableIdNameMapping = new HashMap<>();
-        HashMap<String, String> columnIdNameMapping = new HashMap<>();
 
-        for (ZCTable zcTable : zcTables) {
-            List<Column> columns = new ArrayList<>();
-
-            Table table = new Table(zcTable.getName());
-            tableIdNameMapping.put(zcTable.getTableId().toString(), zcTable.getName());
-
-            for (ZCColumn zcColumn : zcTable.getAllColumns()) {
-                columnIdNameMapping.put(zcColumn.getColumnId().toString(), zcColumn.getColumnName());
-                Column column = new Column(zcColumn.getColumnName(), zcColumn.getDataType());
-
-                if (zcColumn.getParentTable() != null) {
-                    ParentTable parentTable = new ParentTable();
-                    parentTable.setTable(zcColumn.getParentTable());
-                    parentTable.setColumn(zcColumn.getParentColumn());
-                    column.setParent(parentTable);
-                }
-
-                columns.add(column);
-            }
-
-            table.setColumns(columns);
-            tables.add(table);
-
-        }
-
-        for (Table table : tables) {
-            for (Column column : table.getColumns()) {
-                if (column.getParent() != null) {
-                    String tableId = column.getParent().getTable();
-                    String columnId = column.getParent().getColumn();
-
-                    column.getParent().setTable(tableIdNameMapping.get(tableId));
-                    column.getParent().setColumn(columnIdNameMapping.get(columnId));
-                }
-            }
-        }
-        JobDetailParam jobDetailParam = new JobDetailParam();
-        jobDetailParam.setTables(tables);
-
-        return jobDetailParam;
+    public static String getJobCallbackUrl(String domain, String jobId) {
+        return domain + DatastoreExportImportUrlConstants.SERVER + DatastoreExportImportUrlConstants.DATASTORE_EXPORT_IMPORT + DatastoreExportImportUrlConstants.JOBS + "/" + jobId + DatastoreExportImportUrlConstants.CALLBACK;
     }
+
+    public static SubJob getSubJobByBulkJobId(List<SubJob> subJobs, String bulkJobId) {
+        return subJobs.stream().filter(obj -> obj.getBulkJobId().equals(bulkJobId)).findAny().orElse(null);
+    }
+
+    public static SubJob getPendingSubJob(List<SubJob> subJobs) {
+        return subJobs.stream().filter(obj -> obj.getStatus().equals(JobStatus.PENDING.value)).findAny().orElse(null);
+    }
+
+    public static String getCsvFileName(String tableName, Integer page) {
+        StringJoiner stringJoiner = new StringJoiner("-");
+        Arrays.stream(tableName.split(" ")).forEach(stringJoiner::add);
+        stringJoiner.add(page.toString());
+        return stringJoiner + ".csv";
+    }
+
+
 }

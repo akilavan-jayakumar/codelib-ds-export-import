@@ -6,6 +6,6 @@
 		"env_variables": {}
 	},
 	"execution": {
-		"main": "DSExportImport"
+		"main": "DatastoreImportExport"
 	}
 }

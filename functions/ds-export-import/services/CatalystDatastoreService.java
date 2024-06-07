@@ -2,22 +2,27 @@ package services;
 
 import com.zc.component.object.ZCObject;
 import com.zc.component.object.ZCTable;
-import com.zc.component.object.bulk.ZCDataStoreBulk;
-import tables.DatastoreExportImportJobDetailsTable;
+import com.zc.component.object.bulk.*;
+import tables.DatastoreImportExportJobDetailsTable;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class CatalystDatastoreService {
 
-    public File downloadBulkReadReport(String jobId, String folder, String fileName) throws Exception {
-        File file = DiskFileService.createFile(folder, fileName);
+    public static List<ZCTable> getAllTables() throws Exception {
+        return ZCObject.getInstance().getAllTables().stream().filter(obj -> !obj.getName().equals(DatastoreImportExportJobDetailsTable.NAME)).toList();
+    }
 
-        try (InputStream inputStream = ZCDataStoreBulk.getInstance().getBulkReadInstance().downloadBulkReadJobReport(Long.parseLong(jobId))) {
+    public static File downloadBulkReadReport(String bulkReadJobId, String fileName) throws Exception {
+        File file = DiskFileService.createFile(fileName);
+
+        try (InputStream inputStream = ZCDataStoreBulk.getInstance().getBulkReadInstance().downloadBulkReadJobReport(Long.parseLong(bulkReadJobId))) {
             ZipInputStream zipInputStream = new ZipInputStream(inputStream);
             try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
                 ZipEntry zipEntry;
@@ -37,7 +42,34 @@ public class CatalystDatastoreService {
         }
     }
 
-    public static List<ZCTable> getAllTables() throws Exception {
-        return ZCObject.getInstance().getAllTables().stream().filter(obj -> !obj.getName().equals(DatastoreExportImportJobDetailsTable.NAME)).toList();
+
+    public static String createBulkRead(String table, int page, String callbackUrl, HashMap<String, String> headers) throws Exception {
+        ZCBulkCallbackDetails zcBulkCallbackDetails = ZCBulkCallbackDetails.getInstance();
+        zcBulkCallbackDetails.setUrl(callbackUrl);
+        zcBulkCallbackDetails.setHeadersMap(headers);
+
+        ZCBulkQueryDetails zcBulkQueryDetails = ZCBulkQueryDetails.getInstance();
+        zcBulkQueryDetails.setPage(page);
+
+
+        ZCBulkReadServices zcBulkReadServices = ZCDataStoreBulk.getInstance().getBulkReadInstance();
+
+        return zcBulkReadServices.createBulkReadJob(table, zcBulkQueryDetails, zcBulkCallbackDetails).getJobId().toString();
+    }
+
+    public static String createBulkWrite(String table, String fileId, String callbackUrl, HashMap<String, String> headers) throws Exception {
+        ZCBulkCallbackDetails zcBulkCallbackDetails = ZCBulkCallbackDetails.getInstance();
+        zcBulkCallbackDetails.setUrl(callbackUrl);
+        zcBulkCallbackDetails.setHeadersMap(headers);
+
+        ZCBulkWriteDetails zcBulkWriteDetails = ZCBulkWriteDetails.getInstance();
+        zcBulkWriteDetails.setOperation(BULKWRITEOPERATION.INSERT);
+        zcBulkWriteDetails.setTableIdentifier(table);
+        zcBulkWriteDetails.setFileId(Long.parseLong(fileId));
+
+
+        ZCBulkWriteServices zcBulkWriteServices = ZCDataStoreBulk.getInstance().getBulkWriteInstance();
+
+        return zcBulkWriteServices.createBulkWriteJob(zcBulkWriteDetails).getJobId().toString();
     }
 }

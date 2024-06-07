@@ -29,7 +29,7 @@ public class ExportJobService {
 
     public static File getExportReport(String jobId, String folder, String fileName) throws Exception {
         CatalystDatastoreService catalystDatastoreService = new CatalystDatastoreService();
-        return catalystDatastoreService.downloadBulkReadReport(jobId, folder, fileName);
+        return new File("");
     }
 
     public static void createJobs(List<ExportJob> exportJobs) throws Exception {

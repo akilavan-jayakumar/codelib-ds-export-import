@@ -1,20 +1,19 @@
 package enums;
 
 public enum CommonResponseMessage {
-    EXPORT_JOB_NOT_FOUND("We couldn't find the requested job on the server."),
-    RESOURCE_NOT_FOUND("We couldn't find the requested resource on the server."),
-    DATASTORE_EXPORT_SCHEDULED("Datastore export has been scheduled successfully."),
+    COMMON_PROCESSING_MESSAGE("Request has been processed successfully."),
+    JOB_NOT_FOUND("We couldn't find the requested job on the server."),
     INTERNAL_SERVER_ERROR("We're unable to process your request. Kindly try after sometime"),
-    OPERATION_FORBIDDEN_DUE_TO_IMPORT("You're not allowed to perform this operation as datastore is currently being imported."),
-    OPERATION_FORBIDDEN_DUE_TO_EXPORT("You're not allowed to perform this operation as datastore is currently being exported.");
+    JOB_CREATION_FORBIDDEN_DUE_TO_NO_TABLE("You're not allowed to perform this operation because there is no table available"),
+    GET_EXPORT_ZIP_FORBIDDEN_DUE_TO_PENDING_JOB("You are not allowed to perform this operation because this export job is in a pending state."),
+    GET_EXPORT_ZIP_FORBIDDEN_DUE_TO_RUNNING_JOB("You are not allowed to perform this operation because this export job is in a running state."),
+    GET_EXPORT_ZIP_FORBIDDEN_DUE_TO_FAILED_JOB("You are not allowed to perform this operation because this export job has failed."),
+    JOB_CREATION_FORBIDDEN_DUE_TO_IMPORT("You are not allowed to perform this operation because the datastore is currently being imported."),
+    JOB_CREATION_FORBIDDEN_DUE_TO_EXPORT("You are not allowed to perform this operation because the datastore is currently being exported.");
 
-    private final String message;
+    public final String message;
 
     CommonResponseMessage(String message) {
         this.message = message;
-    }
-
-    public String message() {
-        return message;
     }
 }

@@ -8,6 +8,7 @@ public class Table {
     private List<String> files = new ArrayList<>();
     private List<Column> columns =  new ArrayList<>();
 
+    public Table(){}
     public  Table(String name){
         this.name = name;
     }
