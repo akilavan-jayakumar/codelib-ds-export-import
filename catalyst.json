@@ -1,9 +1,8 @@
 {
   "functions": {
     "targets": [
-      "ds-export-import",
-      "ds-export",
-      "datastore-import"
+      "datastore-import-export-service",
+      "datastore-import-export-scheduler"
     ],
     "ignore": [
       ".output"

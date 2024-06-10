@@ -1,0 +1,13 @@
+{
+	"deployment": {
+		"name": "ds-export",
+		"stack": "java17",
+		"type": "basicio",
+		"env_variables": {
+			"CODELIB_SECRET_KEY": "CODELIB_FAKE_KEY"
+		}
+	},
+	"execution": {
+		"main": "DatastoreImportExportScheduler"
+	}
+}

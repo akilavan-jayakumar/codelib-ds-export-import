@@ -1,0 +1,11 @@
+{
+	"deployment": {
+		"name": "datastore-import-export-service",
+		"stack": "java17",
+		"type": "advancedio",
+		"env_variables": {}
+	},
+	"execution": {
+		"main": "DatastoreImportExportService"
+	}
+}
