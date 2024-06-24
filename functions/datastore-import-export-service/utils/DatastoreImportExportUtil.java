@@ -12,7 +12,7 @@ import java.util.StringJoiner;
 public class DatastoreImportExportUtil {
 
     public static String getJobCallbackUrl(String domain, String jobId) {
-        return domain + DatastoreExportImportUrlConstants.SERVER + DatastoreExportImportUrlConstants.DATASTORE_EXPORT_IMPORT + DatastoreExportImportUrlConstants.JOBS + "/" + jobId + DatastoreExportImportUrlConstants.CALLBACK;
+        return domain + DatastoreExportImportUrlConstants.SERVER + DatastoreExportImportUrlConstants.DATASTORE_IMPORT_EXPORT_SERVICE + DatastoreExportImportUrlConstants.JOBS + "/" + jobId + DatastoreExportImportUrlConstants.CALLBACK;
     }
 
     public static SubJob getSubJobByBulkJobId(List<SubJob> subJobs, String bulkJobId) {
@@ -21,6 +21,7 @@ public class DatastoreImportExportUtil {
 
     public static SubJob getPendingSubJob(List<SubJob> subJobs) {
         List<SubJob> pendingSubJobs = subJobs.stream().filter(obj -> obj.getStatus().equals(JobStatus.PENDING.value)).toList();
+        List<SubJob> readPendingSubJobs = pendingSubJobs.stream().filter(obj -> obj.getOperation().equals(SubJobOperation.READ.value)).toList();
         List<SubJob> createPendingSubJobs = pendingSubJobs.stream().filter(obj -> obj.getOperation().equals(SubJobOperation.CREATE.value)).toList();
         List<SubJob> updatePendingSubJobs = pendingSubJobs.stream().filter(obj -> obj.getOperation().equals(SubJobOperation.UPDATE.value)).toList();
         List<SubJob> bulkCreatePendingJobs = pendingSubJobs.stream().filter(obj -> obj.getOperation().equals(SubJobOperation.BULK_CREATE.value)).toList();
@@ -28,6 +29,8 @@ public class DatastoreImportExportUtil {
 
         if (pendingSubJobs.isEmpty()) {
             return null;
+        }else if(!readPendingSubJobs.isEmpty()){
+            return readPendingSubJobs.get(0);
         } else if (!createPendingSubJobs.isEmpty()) {
             return createPendingSubJobs.get(0);
         } else if (!updatePendingSubJobs.isEmpty()) {

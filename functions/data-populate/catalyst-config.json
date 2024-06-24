@@ -1,0 +1,11 @@
+{
+	"deployment": {
+		"name": "data-populate",
+		"stack": "node18",
+		"type": "basicio",
+		"env_variables": {}
+	},
+	"execution": {
+		"main": "index.js"
+	}
+}

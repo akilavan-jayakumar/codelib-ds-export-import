@@ -1,8 +1,10 @@
 {
-	"command": "echo Please specify the start-up command in the app-config.json file under the key command",
+	"command": "npm run start",
 	"buildPath": "/Users/akilavan-11430/Documents/Solutions/codelib-solutions/codelib-ds-export-import/appsail",
 	"stack": "node18",
-	"env_variables": {},
+	"env_variables": {
+		"APPSAIL_DOMAIN":""
+	},
 	"memory": 256,
 	"scripts": {}
 }

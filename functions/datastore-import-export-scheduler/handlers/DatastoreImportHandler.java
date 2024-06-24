@@ -14,9 +14,11 @@ import utils.DatastoreImportExportUtil;
 
 import java.io.File;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class DatastoreImportHandler {
     private static final String FILES_DIR = "files";
+    private static final Logger LOGGER = Logger.getLogger(DatastoreImportHandler.class.getName());
 
     private static List<Map<String, String>> getInsertSpecificRecords(Table table, List<Map<String, String>> records) {
         List<Map<String, String>> results = new ArrayList<>();
@@ -97,12 +99,9 @@ public class DatastoreImportHandler {
             int totalChunks = (int) Math.ceil((double) totalRecords / maxRecords);
 
             for (int chunkNo = 1; chunkNo <= totalChunks; chunkNo++) {
-                int start = (chunkNo - 1) * DatastoreImportExportConstants.DEPENDENT_TABLE_CSV_MAX_RECORDS;
-                int end = Math.min(start + DatastoreImportExportConstants.DEPENDENT_TABLE_CSV_MAX_RECORDS, totalRecords);
+                int start = ((chunkNo - 1) * DatastoreImportExportConstants.DEPENDENT_TABLE_CSV_MAX_RECORDS) + 1;
+                int end = Math.min((start - 1) + DatastoreImportExportConstants.DEPENDENT_TABLE_CSV_MAX_RECORDS, totalRecords);
 
-                if (chunkNo == 1) {
-                    start = chunkNo;
-                }
                 String fileName = DatastoreImportExportUtil.getCsvChunkFileName(tableName, pageNo, chunkNo);
                 File chunkFile = csvProcessor.sliceAsFile(start, end, fileName);
                 files.add(chunkFile);
@@ -221,8 +220,6 @@ public class DatastoreImportHandler {
                             if (isTableContainsForeignKey) {
                                 subJobs.addAll(createAdditionalSubJobForDependentTable(table, csvChunkFileName));
                             }
-
-                            Thread.sleep(DatastoreImportExportConstants.OPERATION_DELAY);
                         }
                         pageNo++;
                     }
@@ -262,12 +259,8 @@ public class DatastoreImportHandler {
                         }
 
                         for (int operationNo = 1; operationNo <= totalOperations; operationNo++) {
-                            int start = (operationNo - 1) * 200;
-                            int end = Math.min(start + 200, totalRecords);
-
-                            if (operationNo == 1) {
-                                start = operationNo;
-                            }
+                            int start = ((operationNo - 1) * 200) + 1;
+                            int end = Math.min((start - 1) + 200, totalRecords);
 
                             List<Map<String, String>> actualRecords = oldFileCsvProcessor.sliceAsMap(start, end);
                             List<Map<String, String>> insertSpecificRecords = getInsertSpecificRecords(table, actualRecords);
@@ -292,8 +285,6 @@ public class DatastoreImportHandler {
                                     return record;
                                 }).toList());
                             }
-
-                            Thread.sleep(DatastoreImportExportConstants.OPERATION_DELAY);
 
                         }
 
@@ -329,7 +320,6 @@ public class DatastoreImportHandler {
                                 Map<String, String> oldToNewIdMapping = DatastoreImportExportService.getOldToNewIdMappings(mappingFileId, mappingFileName);
 
                                 columnAndOldToNewIdMapping.put(column.getName(), oldToNewIdMapping);
-                                Thread.sleep(DatastoreImportExportConstants.OPERATION_DELAY);
                             }
                         }
 
@@ -343,12 +333,8 @@ public class DatastoreImportHandler {
                         int totalOperations = (int) Math.ceil((double) totalRecords / 200);
 
                         for (int operationNo = 1; operationNo <= totalOperations; operationNo++) {
-                            int start = (operationNo - 1) * 200;
-                            int end = Math.min(start + 200, totalRecords);
-
-                            if (operationNo == 1) {
-                                start = operationNo;
-                            }
+                            int start = ((operationNo - 1) * 200) + 1;
+                            int end = Math.min((start-1) + 200, totalRecords);
 
                             List<Map<String, String>> actualRecords = csvProcessor.sliceAsMap(start, end);
                             List<Map<String, String>> updateSpecificRecords = getUpdateSpecificRecords(table, actualRecords, pendingSubJob.getColumns(), columnAndOldToNewIdMapping);
@@ -362,7 +348,7 @@ public class DatastoreImportHandler {
                         pendingSubJob.setStatus(JobStatus.SUCCESS.value);
                     } else {
                         triggerCatalystImportExportJob = false;
-                        
+
                         String nextBulkReadJobId = CatalystDatastoreService.createBulkWrite(pendingSubJob.getTable(), files.get(pendingSubJob.getFile()), DatastoreImportExportUtil.getJobCallbackUrl(domain, jobDetail.getId()), new HashMap<>());
                         pendingSubJob.setStatus(JobStatus.RUNNING.value);
                         pendingSubJob.setBulkJobId(nextBulkReadJobId);

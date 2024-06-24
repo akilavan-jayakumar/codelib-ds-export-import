@@ -1,7 +1,11 @@
 package services;
 
+import com.catalystsolutions.querybuilder.builders.QueryBuilder;
+import com.catalystsolutions.querybuilder.enums.Operation;
+import com.catalystsolutions.querybuilder.pojos.Column;
 import com.zc.component.object.ZCObject;
 import com.zc.component.object.ZCRowObject;
+import com.zc.component.zcql.ZCQL;
 import constants.CatalystTableConstants;
 
 import java.util.List;
@@ -24,6 +28,17 @@ public class CatalystTableService {
 
             return zcRowObject;
         }).toList();
+    }
+
+    public Long getTotalRecords() throws Exception {
+        Column column = new Column(tableName, CatalystTableConstants.SystemColumns.ROWID);
+
+        QueryBuilder queryBuilder = QueryBuilder.getInstance(Operation.SELECT);
+        queryBuilder.count(column);
+        queryBuilder.from(tableName);
+
+        List<ZCRowObject> records = ZCQL.getInstance().executeQuery(queryBuilder.build());
+        return Long.parseLong(records.get(0).get(tableName, column.Raw.count).toString());
     }
 
     public void insertRecords(List<Map<String, String>> records) throws Exception {

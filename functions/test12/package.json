@@ -1,0 +1,9 @@
+{
+	"name": "test12",
+	"version": "1.0.0",
+	"main": "index.js",
+	"author": "akilavan.j+solutions@zohotest.com",
+	"dependencies": {
+		"zcatalyst-sdk-node": "latest"
+	}
+}

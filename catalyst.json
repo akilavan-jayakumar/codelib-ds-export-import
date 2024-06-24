@@ -2,11 +2,19 @@
   "functions": {
     "targets": [
       "datastore-import-export-service",
-      "datastore-import-export-scheduler"
+      "datastore-import-export-scheduler",
+      "data-populate",
+      "test12"
     ],
     "ignore": [
       ".output"
     ],
     "source": "functions"
-  }
+  },
+  "appsail": [
+    {
+      "source": "/Users/akilavan-11430/Documents/Solutions/codelib-solutions/codelib-ds-export-import/appsail",
+      "name": "appsail"
+    }
+  ]
 }

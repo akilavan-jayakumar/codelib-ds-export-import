@@ -24,9 +24,13 @@ import tablefilters.DatastoreImportExportJobDetailsTableFilter;
 import tables.DatastoreImportExportJobDetailsTable;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class DatastoreImportExportService {
 
@@ -117,7 +121,7 @@ public class DatastoreImportExportService {
         });
     }
 
-    public static File generateTableMetaJsonFromTables(List<Table> tables) throws Exception {
+    public static File generateTableMetaJsonFileFromTables(List<Table> tables) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         return DiskFileService.writeFile(DatastoreImportExportConstants.TABLE_META_JSON, objectMapper.writeValueAsString(tables));
     }
@@ -158,7 +162,6 @@ public class DatastoreImportExportService {
 
             table.setColumns(columns);
             tables.add(table);
-            Thread.sleep(DatastoreImportExportConstants.OPERATION_DELAY);
         }
 
         for (Table table : tables) {
@@ -195,7 +198,7 @@ public class DatastoreImportExportService {
     }
 
     public static String uploadAsset(File file, boolean deleteSource) throws Exception {
-        String fileId = ZCFile.getInstance().getFolderInstance(CatalystFilestoreFolders.DATASTORE_EXPORT_IMPORT).uploadFile(file).getFileId().toString();
+        String fileId = ZCFile.getInstance().getFolderInstance(CatalystFilestoreFolders.DATASTORE_IMPORT_EXPORT).uploadFile(file).getFileId().toString();
 
         if (deleteSource) {
             Files.delete(file.toPath());
@@ -205,17 +208,40 @@ public class DatastoreImportExportService {
 
     public static File downloadAsset(String fileId, String fileName) throws Exception {
         File file = DiskFileService.createFile(fileName);
-        try (InputStream inputStream = ZCFile.getInstance().getFolderInstance(CatalystFilestoreFolders.DATASTORE_EXPORT_IMPORT).downloadFile(Long.parseLong(fileId))) {
+        try (InputStream inputStream = ZCFile.getInstance().getFolderInstance(CatalystFilestoreFolders.DATASTORE_IMPORT_EXPORT).downloadFile(Long.parseLong(fileId))) {
             Files.copy(inputStream, file.toPath());
         }
         return file;
     }
 
+    public static File downloadAssetsAsZipWithExtraFiles(String zipFileName, Map<String, String> fileNameAndIdMap, List<File> extraFiles) throws Exception {
+        File zipFile = DiskFileService.createFile(zipFileName);
+        ZCFolder zcFolder = ZCFile.getInstance().getFolderInstance(CatalystFilestoreFolders.DATASTORE_IMPORT_EXPORT);
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFile))) {
+            for (Map.Entry<String, String> fileNameAndIdEntry : fileNameAndIdMap.entrySet()) {
+                ZipEntry zipEntry = new ZipEntry(fileNameAndIdEntry.getKey());
+                zipOutputStream.putNextEntry(zipEntry);
+                try (InputStream inputStream = zcFolder.downloadFile(Long.parseLong(fileNameAndIdEntry.getValue()))) {
+                    inputStream.transferTo(zipOutputStream);
+                }
+                zipOutputStream.closeEntry();
+            }
+
+            for (File extraFile : extraFiles) {
+                Path path = extraFile.toPath();
+                ZipEntry zipEntry = new ZipEntry(extraFile.getName());
+                zipOutputStream.putNextEntry(zipEntry);
+                Files.copy(path, zipOutputStream);
+                zipOutputStream.closeEntry();
+            }
+        }
+        return zipFile;
+    }
+
     public static void deleteAssets(List<String> fileIds) throws Exception {
-        ZCFolder zcFolder = ZCFile.getInstance().getFolderInstance(CatalystFilestoreFolders.DATASTORE_EXPORT_IMPORT);
+        ZCFolder zcFolder = ZCFile.getInstance().getFolderInstance(CatalystFilestoreFolders.DATASTORE_IMPORT_EXPORT);
         for (String fileId : fileIds) {
             zcFolder.deleteFile(Long.parseLong(fileId));
-            Thread.sleep(DatastoreImportExportConstants.OPERATION_DELAY);
         }
     }
 

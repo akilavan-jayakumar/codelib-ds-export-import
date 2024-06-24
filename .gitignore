@@ -1,4 +1,5 @@
 .catalystrc
+catalyst-debug.log
 **/.project
 **/.classpath
 **/.idea

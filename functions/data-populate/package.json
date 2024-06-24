@@ -1,0 +1,10 @@
+{
+	"name": "data-populate",
+	"version": "1.0.0",
+	"main": "index.js",
+	"author": "akilavan.j+solutions@zohotest.com",
+	"dependencies": {
+		"axios": "^1.7.2",
+		"zcatalyst-sdk-node": "latest"
+	}
+}

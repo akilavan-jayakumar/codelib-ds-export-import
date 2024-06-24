@@ -26,8 +26,6 @@ public class CatalystDatastoreService {
             zcTableDetail.setZcTable(zcTable);
             zcTableDetail.setZcColumns(zcTable.getAllColumns());
             zcTableDetails.add(zcTableDetail);
-
-            Thread.sleep(DatastoreImportExportConstants.OPERATION_DELAY);
         }
 
         return zcTableDetails;

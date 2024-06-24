@@ -18,6 +18,9 @@ public class DatastoreImportExportScheduler implements ZCFunction {
 
     @Override
     public void runner(Context context, BasicIO basicIO) throws Exception {
+
+        LOGGER.log(Level.SEVERE, "Test ::: Started main execution");
+
         ResponseWrapper responseWrapper = new ResponseWrapper();
         try {
 
@@ -50,6 +53,8 @@ public class DatastoreImportExportScheduler implements ZCFunction {
             responseWrapper.setStatus(200);
             responseWrapper.setMessage(CommonResponseMessage.JOB_SUCCEEDED.message);
 
+            LOGGER.log(Level.SEVERE, "Test ::: Ended main execution");
+
         } catch (Exception e) {
             responseWrapper.setStatus(500);
             responseWrapper.setMessage(CommonResponseMessage.JOB_FAILED.message);
@@ -59,6 +64,8 @@ public class DatastoreImportExportScheduler implements ZCFunction {
 
         basicIO.setStatus(responseWrapper.getStatus());
         basicIO.write(responseWrapper.getMessage());
+
+        LOGGER.log(Level.SEVERE, "Test ::: Completed execution");
 
     }
 

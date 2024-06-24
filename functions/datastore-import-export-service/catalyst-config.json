@@ -3,7 +3,10 @@
 		"name": "datastore-import-export-service",
 		"stack": "java17",
 		"type": "advancedio",
-		"env_variables": {}
+		"env_variables": {
+			"IMPORT_EXPORT_JOB_ID": "12130000005193029",
+			"BUCKET_NAME": "datastore-import-export"
+		}
 	},
 	"execution": {
 		"main": "DatastoreImportExportService"

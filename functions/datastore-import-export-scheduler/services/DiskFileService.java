@@ -69,6 +69,7 @@ public class DiskFileService {
                 ZipEntry zipEntry = new ZipEntry(file.getName());
                 zipOutputStream.putNextEntry(zipEntry);
                 Files.copy(path, zipOutputStream);
+                zipOutputStream.closeEntry();
 
                 if (deleteSourceFiles) {
                     Files.delete(path);

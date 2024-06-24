@@ -23,7 +23,7 @@ public class DatastoreImportExportUtil {
     }
 
     public static String getJobCallbackUrl(String domain, String jobId) {
-        return domain + DatastoreImportExportUrlConstants.SERVER + DatastoreImportExportUrlConstants.DATASTORE_EXPORT_IMPORT + DatastoreImportExportUrlConstants.JOBS + "/" + jobId + DatastoreImportExportUrlConstants.CALLBACK;
+        return domain + DatastoreImportExportUrlConstants.SERVER + DatastoreImportExportUrlConstants.DATASTORE_IMPORT_EXPORT_SERVICE + DatastoreImportExportUrlConstants.JOBS + "/" + jobId + DatastoreImportExportUrlConstants.CALLBACK;
     }
 
     public static Table getTableByName(List<Table> tables, String tableName) {
@@ -52,6 +52,7 @@ public class DatastoreImportExportUtil {
 
     public static SubJob getPendingSubJob(List<SubJob> subJobs) {
         List<SubJob> pendingSubJobs = subJobs.stream().filter(obj -> obj.getStatus().equals(JobStatus.PENDING.value)).toList();
+        List<SubJob> readPendingSubJobs = pendingSubJobs.stream().filter(obj -> obj.getOperation().equals(SubJobOperation.READ.value)).toList();
         List<SubJob> createPendingSubJobs = pendingSubJobs.stream().filter(obj -> obj.getOperation().equals(SubJobOperation.CREATE.value)).toList();
         List<SubJob> updatePendingSubJobs = pendingSubJobs.stream().filter(obj -> obj.getOperation().equals(SubJobOperation.UPDATE.value)).toList();
         List<SubJob> bulkCreatePendingJobs = pendingSubJobs.stream().filter(obj -> obj.getOperation().equals(SubJobOperation.BULK_CREATE.value)).toList();
@@ -59,6 +60,8 @@ public class DatastoreImportExportUtil {
 
         if (pendingSubJobs.isEmpty()) {
             return null;
+        }else if(!readPendingSubJobs.isEmpty()){
+            return readPendingSubJobs.get(0);
         } else if (!createPendingSubJobs.isEmpty()) {
             return createPendingSubJobs.get(0);
         } else if (!updatePendingSubJobs.isEmpty()) {
@@ -66,6 +69,8 @@ public class DatastoreImportExportUtil {
         } else {
             return bulkCreatePendingJobs.get(0);
         }
+
+
 
     }
 
